@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <declare-styleable name="PenguinIndicator">
+        <attr name="pi_width" format="dimension"/>
+        <attr name="pi_height" format="dimension"/>
+        <attr name="pi_margin" format="dimension"/>
+        <attr name="pi_animator" format="reference"/>
+        <attr name="pi_animator_reverse" format="reference"/>
+        <attr name="pi_drawable" format="reference"/>
+        <attr name="pi_drawable_unselected" format="reference"/>
+
+    </declare-styleable>
+
+</resources>
