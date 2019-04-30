@@ -6,10 +6,14 @@ import android.os.Message;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 
 import com.nasduck.lib.indicator.RoundIndicator;
+
+import java.lang.reflect.Field;
 
 import static android.support.v4.view.ViewPager.SCROLL_STATE_DRAGGING;
 import static android.support.v4.view.ViewPager.SCROLL_STATE_IDLE;
@@ -19,6 +23,8 @@ import static android.support.v4.view.ViewPager.SCROLL_STATE_IDLE;
  * Description: 顶部横幅轮播栏
  */
 public class BannerView extends FrameLayout implements ViewPager.OnPageChangeListener {
+
+    private static final String TAG = "BannerView";
 
     private ViewPager mViewPager;
     private RoundIndicator mIndicator;
@@ -111,6 +117,7 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
         mIndicator = findViewById(R.id.round_indicator);
 
         mViewPager.addOnPageChangeListener(this);
+        setSmoothScroll();
     }
 
     public void initData() {
@@ -125,7 +132,7 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
                 switch (msg.what) {
                     case NEXT_PAGE_MESSAGE:
                         if (mAutoPlay) {
-                            mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1));
+                            mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1), true);
                             sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
                         }
                         break;
@@ -167,5 +174,23 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
     @Override
     public void onPageSelected(int position) {
 
+    }
+
+    private void setSmoothScroll() {
+        try {
+
+            Field mScroller;
+            mScroller = ViewPager.class.getDeclaredField("mScroller");
+            mScroller.setAccessible(true);
+            SmoothSpeedScroller scroller = new SmoothSpeedScroller(mViewPager.getContext(), new LinearInterpolator());
+//            scroller.setDuration(3000);
+            mScroller.set(mViewPager, scroller);
+        } catch (NoSuchFieldException e) {
+            Log.e(TAG, "initData: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "initData: " + e.getMessage());
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, "initData: " + e.getMessage() );
+        }
     }
 }
