@@ -12,8 +12,7 @@ import android.widget.FrameLayout;
 import com.nasduck.lib.indicator.RoundIndicator;
 
 import static android.support.v4.view.ViewPager.SCROLL_STATE_DRAGGING;
-import static android.support.v4.view.ViewPager.SCROLL_STATE_SETTLING;
-
+import static android.support.v4.view.ViewPager.SCROLL_STATE_IDLE;
 
 /**
  * Created by yi on 2019/4/25.
@@ -27,7 +26,6 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
     private Handler mHandler;
 
     private static final int NEXT_PAGE_MESSAGE = 1;  // 下一页事件消息
-    private static final int STOP_PLAY = 2; // 停止自动轮播事件消息
     private static final int INTERVAL_TIME = 3000;  // 轮播间隔常量
 
     // 是否自动播放，默认为 true
@@ -36,6 +34,9 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
     private int mSize;
     // 轮播时间间隔变量
     private int mIntervalTime;
+    // 上一状态是否为拖拽状态
+    private boolean mIsAfterDragging;
+
 
 
     public BannerView(Context context) {
@@ -69,7 +70,7 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
         mAdapter.notifyDataSetChanged();
 
         if (mAutoPlay) {
-            mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, INTERVAL_TIME);
+            mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
         }
     }
 
@@ -77,9 +78,13 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
         mAutoPlay = autoPlay;
     }
 
+    public void setIntervalTime(int intervalTime) {
+        mIntervalTime = intervalTime;
+    }
+
     public void startPlay() {
         mAutoPlay = true;
-        mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, INTERVAL_TIME);
+        mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
     }
 
     public boolean isAutoPlay() {
@@ -112,6 +117,7 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
 
         mAutoPlay = true;
         mIntervalTime = INTERVAL_TIME;
+        mIsAfterDragging = false;
 
         mHandler = new Handler() {
             @Override
@@ -123,9 +129,6 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
                             sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
                         }
                         break;
-                    case STOP_PLAY:
-                        stopPlay();
-                        break;
                     default:
                         break;
                 }
@@ -134,18 +137,25 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
     }
 
     /**
-     * @param state 新的状态
+     * @param state 新的状态.
      * viewpager 滑动监听，设置手动滑动按下时，停止自动轮播
      * 松开时继续播放
-     * */
+     */
     @Override
     public void onPageScrollStateChanged(int state) {
-        if (SCROLL_STATE_DRAGGING == state) {
-            stopPlay();
-        }
-
-        if (SCROLL_STATE_SETTLING == state) {
-            startPlay();
+        switch (state) {
+            case SCROLL_STATE_DRAGGING:
+                stopPlay();
+                mIsAfterDragging = true;
+                break;
+            case SCROLL_STATE_IDLE:
+                if (mIsAfterDragging) {
+                    mIsAfterDragging = false;
+                    startPlay();
+                }
+                break;
+            default:
+                break;
         }
     }
 
@@ -158,6 +168,4 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
     public void onPageSelected(int position) {
 
     }
-
-
 }
