@@ -7,7 +7,7 @@ import android.widget.Scroller;
 public class SmoothSpeedScroller extends Scroller {
 
     // 动画时间
-    private int mSmoothDuration = 400;
+    private int mSmoothDuration;
 
     public SmoothSpeedScroller(Context context) {
         super(context);
