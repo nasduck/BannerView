@@ -1,6 +1,7 @@
 package com.nasduck.lib;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.view.PagerAdapter;
@@ -26,6 +27,17 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
 
     private static final String TAG = "BannerView";
 
+    // 轮播内容个数
+    int mSize;
+    // 是否自动播放，默认为 true
+    boolean mAutoPlay;
+    // 轮播时间间隔变量
+    private int mIntervalTime;
+    // 轮换持续时间
+    private int mSmoothDuration;
+    // 平滑切换
+    private boolean mSmoothScroll;
+
     private ViewPager mViewPager;
     private RoundIndicator mIndicator;
     private PagerAdapter mAdapter;
@@ -34,26 +46,22 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
     private static final int NEXT_PAGE_MESSAGE = 1;  // 下一页事件消息
     private static final int INTERVAL_TIME = 3000;  // 轮播间隔常量
 
-    // 是否自动播放，默认为 true
-    private boolean mAutoPlay;
-    // 轮播内容个数
-    private int mSize;
-    // 轮播时间间隔变量
-    private int mIntervalTime;
+
     // 上一状态是否为拖拽状态
     private boolean mIsAfterDragging;
 
-
-
     public BannerView(Context context) {
         super(context);
-        mAutoPlay = true;
     }
 
     public BannerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         LayoutInflater.from(context).inflate(R.layout.banner_view, this);
-
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.BannerView);
+        mAutoPlay = typedArray.getBoolean(R.styleable.BannerView_autoPlay, true);  // 默认自动轮播
+        mIntervalTime = typedArray.getInt(R.styleable.BannerView_intervalTime, INTERVAL_TIME);
+        mSmoothScroll = typedArray.getBoolean(R.styleable.BannerView_smoothScroll, false);
+        mSmoothDuration = typedArray.getInt(R.styleable.BannerView_scrollTime, -1);
         initData();
         initView();
     }
@@ -61,6 +69,7 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
     public BannerView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
+
 
     public void setAdapter(PagerAdapter adapter, int size) {
         mAdapter = adapter;
@@ -78,10 +87,6 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
         if (mAutoPlay) {
             mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
         }
-    }
-
-    public void setAutoPlay(boolean autoPlay) {
-        mAutoPlay = autoPlay;
     }
 
     public void setIntervalTime(int intervalTime) {
@@ -115,24 +120,25 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
     public void initView() {
         mViewPager = findViewById(R.id.view_pager);
         mIndicator = findViewById(R.id.round_indicator);
-
         mViewPager.addOnPageChangeListener(this);
-        setSmoothScroll();
+        if (mSmoothDuration > 0 && mSmoothDuration < mIntervalTime) {
+            setSmoothScroll(mSmoothDuration);
+        }
     }
 
     public void initData() {
-
-        mAutoPlay = true;
-        mIntervalTime = INTERVAL_TIME;
         mIsAfterDragging = false;
-
         mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 switch (msg.what) {
                     case NEXT_PAGE_MESSAGE:
                         if (mAutoPlay) {
-                            mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1), true);
+                            if (mSmoothScroll) {
+                                mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1), true);
+                            } else {
+                                mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1));
+                            }
                             sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
                         }
                         break;
@@ -176,14 +182,15 @@ public class BannerView extends FrameLayout implements ViewPager.OnPageChangeLis
 
     }
 
-    private void setSmoothScroll() {
-        try {
 
+    // 设置自定义滑动 Scroller
+    private void setSmoothScroll(int duration) {
+        try {
             Field mScroller;
             mScroller = ViewPager.class.getDeclaredField("mScroller");
             mScroller.setAccessible(true);
             SmoothSpeedScroller scroller = new SmoothSpeedScroller(mViewPager.getContext(), new LinearInterpolator());
-//            scroller.setDuration(3000);
+            scroller.setDuration(duration);
             mScroller.set(mViewPager, scroller);
         } catch (NoSuchFieldException e) {
             Log.e(TAG, "initData: " + e.getMessage());
