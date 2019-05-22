@@ -1,7 +1,7 @@
 package com.nasduck.lib;
 
 public enum  BannerDataType {
-    TYPE_SOURCE(0), TYPE_INTERENET(1);
+    TYPE_SOURCE(0), TYPE_INTERNET(1);
 
     private int mType;
 
