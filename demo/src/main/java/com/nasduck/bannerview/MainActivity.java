@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mNetAdapter = new BannerAdapter(mUrlStringList.toArray(new String[mUrlStringList.size()]));
         mBannerViewNet.setAdapter(mNetAdapter, mUrlStringList.size());
-        mBannerViewNet.hasIndicator(false);
+        mBannerViewNet.hasIndicator(true);
 
         mLocalAdapter = new BannerAdapter(mDrawableList.toArray(new Drawable[mDrawableList.size()]));
         mBannerViewLocal.setAdapter(mLocalAdapter, mDrawableList.size());
@@ -73,20 +73,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btn_stop:
-                if (mBannerViewNet.isAutoPlay()) {
-                    mBannerViewNet.stopPlay();
-                    mBannerViewLocal.stopPlay();
-                    mStopBtn.setText(getResources().getString(R.string.start));
-                } else {
-                    mBannerViewNet.startPlay();
-                    mBannerViewLocal.startPlay();
-                    mStopBtn.setText(getResources().getString(R.string.stop));
-                }
-                break;
-            default:
-                break;
+        if (v.getId() == R.id.btn_stop) {
+            if (mBannerViewNet.isAutoPlay()) {
+                mBannerViewNet.stopPlay();
+                mBannerViewLocal.stopPlay();
+                mStopBtn.setText(getResources().getString(R.string.start));
+            } else {
+                mBannerViewNet.startPlay();
+                mBannerViewLocal.startPlay();
+                mStopBtn.setText(getResources().getString(R.string.stop));
+            }
         }
 
     }
