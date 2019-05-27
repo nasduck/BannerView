@@ -26,9 +26,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private BannerAdapter mNetAdapter;
     private BannerAdapter mLocalAdapter;
 
-    private boolean mNeedPlayNet;
-    private boolean mNeedPlayLocal;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,11 +42,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mNetAdapter = new BannerAdapter(mUrlStringList.toArray(new String[mUrlStringList.size()]));
         mBannerViewNet.setAdapter(mNetAdapter, mUrlStringList.size());
         mBannerViewNet.hasIndicator(true);
+        mBannerViewNet.setIntervalTime(3000);
 
         mLocalAdapter = new BannerAdapter(mDrawableList.toArray(new Drawable[mDrawableList.size()]));
         mBannerViewLocal.setAdapter(mLocalAdapter, mDrawableList.size());
         mBannerViewLocal.hasIndicator(true);
-        mBannerViewLocal.setIntervalTime(4000);
+        mBannerViewLocal.setIntervalTime(3000);
+
+        getLifecycle().addObserver(mBannerViewNet);
+        getLifecycle().addObserver(mBannerViewLocal);
     }
 
     private void initData() {
@@ -74,50 +75,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btn_stop) {
-            if (mBannerViewNet.isAutoPlay()) {
+            if (mBannerViewNet.isPlaying()) {
                 mBannerViewNet.stopPlay();
                 mBannerViewLocal.stopPlay();
                 mStopBtn.setText(getResources().getString(R.string.start));
             } else {
-                mBannerViewNet.startPlay();
-                mBannerViewLocal.startPlay();
+                mBannerViewNet.play();
+                mBannerViewLocal.play();
                 mStopBtn.setText(getResources().getString(R.string.stop));
             }
         }
 
-    }
-
-
-    /**
-     * 视图不可见时，停止自动轮播
-     * 并保存是否自动轮播状态，以便恢复
-     * */
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mNeedPlayNet = mBannerViewNet.isAutoPlay();
-        if (mNeedPlayNet) {
-            mBannerViewNet.stopPlay();
-        }
-        mNeedPlayLocal = mBannerViewLocal.isAutoPlay();
-        if (mNeedPlayLocal) {
-            mBannerViewLocal.stopPlay();
-        }
-    }
-
-    /**
-     * 恢复轮播状态
-     * */
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-
-        if (mNeedPlayNet) {
-            mBannerViewNet.startPlay();
-        }
-
-        if (mNeedPlayLocal) {
-            mBannerViewLocal.startPlay();
-        }
     }
 }
