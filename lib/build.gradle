@@ -21,6 +21,12 @@ android {
         }
     }
 
+    // use Java 8
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 }
 
 dependencies {
@@ -30,4 +36,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    // Lifecycle
+    def lifecycle_version = "1.1.1"
+    api "android.arch.lifecycle:common-java8:$lifecycle_version"
+
+
 }
