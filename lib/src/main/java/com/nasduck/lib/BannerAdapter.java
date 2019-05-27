@@ -28,20 +28,20 @@ public class BannerAdapter extends PagerAdapter {
     private String[] mUrlStrings;
     private BannerDataType mType;
     private List<Bitmap> mBitmapList;
+    private int mRealSize;
 
-//	private int mWidth;
-//	private int mHeight;
+    private ImageClickListener mClickListener;
 
-    public BannerAdapter(Drawable... drawables) {
+    public BannerAdapter(Drawable[] drawables) {
         mDrawables = drawables;
+        mRealSize = mDrawables.length;
         mType = BannerDataType.TYPE_SOURCE;
     }
 
-    public BannerAdapter(String... urlStrings) {
-
-//		this(-1, -1, urlStrings);
-
+    public BannerAdapter(String[] urlStrings) {
         mUrlStrings = urlStrings;
+        mRealSize = mUrlStrings.length;
+
         mType = BannerDataType.TYPE_INTERNET;
         mBitmapList = new ArrayList<>();
         for (int i = 0; i < mUrlStrings.length; i += 1) {
@@ -57,31 +57,33 @@ public class BannerAdapter extends PagerAdapter {
 
     }
 
-//	public BannerAdapter(int width, int height, String... urlStrings) {
-//		mWidth = width;
-//		mHeight = height;
-//
-//		mUrlStrings = urlStrings;
-//		mType = BannerDataType.TYPE_INTERNET;
-//	}
-
-
     @NonNull
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         ImageView imageView = new ImageView(container.getContext());
+        int realPosition = position % mRealSize;
         imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         if (mType == BannerDataType.TYPE_SOURCE) {
-            imageView.setImageDrawable(mDrawables[position % mDrawables.length]);
+            imageView.setImageDrawable(mDrawables[realPosition]);
         } else {
-            if (mBitmapList.get(position % mBitmapList.size()) != null) {
-                imageView.setImageBitmap(mBitmapList.get(position % mBitmapList.size()));
+            if (mBitmapList.get(realPosition) != null) {
+                imageView.setImageBitmap(mBitmapList.get(realPosition));
             }
         }
         if (container.equals(imageView.getParent())) {
             container.removeView(imageView);
         }
         container.addView(imageView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+
+        // 图片点击事件
+
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mClickListener.onImageClick(realPosition);
+            }
+        });
+
         return imageView;
     }
 
@@ -101,7 +103,10 @@ public class BannerAdapter extends PagerAdapter {
         return view == o;
     }
 
-    public void loadImageFromWebOperations() {
+    /**
+     * 通过网络下载图片
+     */
+    private void loadImageFromWebOperations() {
         for (int i = 0; i < mBitmapList.size(); i += 1) {
             try {
                 InputStream is = (InputStream) new URL(mUrlStrings[i]).getContent();
@@ -112,5 +117,13 @@ public class BannerAdapter extends PagerAdapter {
                 Log.e(TAG, "LoadImageFromWebOperations: IOException: " + ioe.getMessage());
             }
         }
+    }
+
+    public interface ImageClickListener {
+        void onImageClick(int position);
+    }
+
+    public void setClickListener(ImageClickListener clickListener) {
+        mClickListener = clickListener;
     }
 }

@@ -7,6 +7,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.nasduck.lib.BannerAdapter;
 import com.nasduck.lib.BannerView;
@@ -48,6 +49,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBannerViewLocal.setAdapter(mLocalAdapter, mDrawableList.size());
         mBannerViewLocal.hasIndicator(true);
         mBannerViewLocal.setIntervalTime(3000);
+        mBannerViewLocal.setClickListener(new BannerAdapter.ImageClickListener() {
+            @Override
+            public void onImageClick(int position) {
+                Toast.makeText(MainActivity.this, " clicked at " + position, Toast.LENGTH_SHORT).show();
+            }
+        });
 
         getLifecycle().addObserver(mBannerViewNet);
         getLifecycle().addObserver(mBannerViewLocal);

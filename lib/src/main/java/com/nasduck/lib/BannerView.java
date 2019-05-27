@@ -44,7 +44,7 @@ public class BannerView extends FrameLayout
 
     private ViewPager mViewPager;
     private RoundIndicator mIndicator;
-    private PagerAdapter mAdapter;
+    private BannerAdapter mAdapter;
     private static Handler mHandler;
 
     private static final int NEXT_PAGE_MESSAGE = 1;  // 下一页事件消息
@@ -52,6 +52,8 @@ public class BannerView extends FrameLayout
 
     private Lifecycle mLifecycle;  // 生命周期
     private boolean mIsAfterDragging;  // 上一状态是否为拖拽状态
+
+    private BannerAdapter.ImageClickListener mClickListener;
 
     public BannerView(Context context) {
         super(context);
@@ -79,7 +81,7 @@ public class BannerView extends FrameLayout
         Log.i(TAG, "onCreate: ");
     }
 
-    public void setAdapter(PagerAdapter adapter, int size) {
+    public void setAdapter(BannerAdapter adapter, int size) {
         mAdapter = adapter;
         mSize = size;
 
@@ -245,6 +247,12 @@ public class BannerView extends FrameLayout
             Log.e(TAG, "initData: " + e.getMessage());
         } catch (IllegalAccessException e) {
             Log.e(TAG, "initData: " + e.getMessage());
+        }
+    }
+
+    public void setClickListener(BannerAdapter.ImageClickListener clickListener) {
+        if (mAdapter != null) {
+            mAdapter.setClickListener(clickListener);
         }
     }
 }
