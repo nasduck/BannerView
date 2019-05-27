@@ -45,7 +45,7 @@ public class BannerView extends FrameLayout
     private ViewPager mViewPager;
     private RoundIndicator mIndicator;
     private PagerAdapter mAdapter;
-    private  static Handler mHandler;
+    private static Handler mHandler;
 
     private static final int NEXT_PAGE_MESSAGE = 1;  // 下一页事件消息
     private static final int INTERVAL_TIME = 3000;  // 轮播间隔常量

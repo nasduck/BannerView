@@ -12,6 +12,7 @@ import android.view.View;
 
 public class DepthPageTransformer implements ViewPager.PageTransformer {
     private static final float MIN_SCALE = 0.75f;
+
     @Override
     public void transformPage(@NonNull View view, float position) {
         int pageWidth = view.getWidth();
@@ -24,7 +25,7 @@ public class DepthPageTransformer implements ViewPager.PageTransformer {
             view.setScaleY(1);
         } else if (position <= 1) {
             view.setAlpha(1 - position);
-            view.setTranslationX(pageWidth * - position);
+            view.setTranslationX(pageWidth * -position);
             float scaleFactor = MIN_SCALE + (1 - MIN_SCALE) * (1 - Math.abs(position));
             view.setScaleX(scaleFactor);
             view.setScaleY(scaleFactor);

@@ -44,7 +44,7 @@ public class BannerAdapter extends PagerAdapter {
         mUrlStrings = urlStrings;
         mType = BannerDataType.TYPE_INTERNET;
         mBitmapList = new ArrayList<>();
-        for (int i = 0; i < mUrlStrings.length; i +=1) {
+        for (int i = 0; i < mUrlStrings.length; i += 1) {
             mBitmapList.add(null);
         }
 
