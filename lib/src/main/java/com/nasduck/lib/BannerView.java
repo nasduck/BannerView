@@ -5,10 +5,11 @@ import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleOwner;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -45,13 +46,14 @@ public class BannerView extends FrameLayout
     private ViewPager mViewPager;
     private RoundIndicator mIndicator;
     private BannerAdapter mAdapter;
-    private static Handler mHandler;
+    private Handler mHandler;
 
     private static final int NEXT_PAGE_MESSAGE = 1;  // 下一页事件消息
     private static final int INTERVAL_TIME = 3000;  // 轮播间隔常量
 
     private Lifecycle mLifecycle;  // 生命周期
     private boolean mIsAfterDragging;  // 上一状态是否为拖拽状态
+
 
     private BannerAdapter.ImageClickListener mClickListener;
 
@@ -78,7 +80,6 @@ public class BannerView extends FrameLayout
     @Override
     public void onCreate(@NonNull LifecycleOwner owner) {
         mLifecycle = owner.getLifecycle();
-        Log.i(TAG, "onCreate: ");
     }
 
     public void setAdapter(BannerAdapter adapter, int size) {
@@ -112,14 +113,15 @@ public class BannerView extends FrameLayout
         }
     }
 
+    /**
+     * 设置占位图
+     * */
+    public void setPlaceHolder(Drawable placeHolder) {
+        mAdapter.setPlaceholder(placeHolder);
+    }
 
-    public void initView() {
-        mViewPager = findViewById(R.id.view_pager);
-        mIndicator = findViewById(R.id.round_indicator);
-        mViewPager.addOnPageChangeListener(this);
-        if (mSmoothDuration > 0 && mSmoothDuration < mIntervalTime) {
-            setSmoothScroll(mSmoothDuration);
-        }
+    public void setPlaceholder(Bitmap placeholder) {
+        mAdapter.setPlaceholder(placeholder);
     }
 
     public void initData() {
@@ -140,6 +142,16 @@ public class BannerView extends FrameLayout
         };
     }
 
+    public void initView() {
+        mViewPager = findViewById(R.id.view_pager);
+        mIndicator = findViewById(R.id.round_indicator);
+        mViewPager.addOnPageChangeListener(this);
+        if (mSmoothDuration > 0 && mSmoothDuration < mIntervalTime) {
+            setSmoothScroll(mSmoothDuration);
+        }
+    }
+
+
     /**
      * 监听 onStart() 生命周期
      * 根据是否自动轮播的状态，控制是否轮播
@@ -152,8 +164,8 @@ public class BannerView extends FrameLayout
     }
 
     @Override
-    public void onStop(@NonNull LifecycleOwner owner) {
-        stopPlay();
+    public void onPause(@NonNull LifecycleOwner owner) {
+        pause();
     }
 
     /**
@@ -167,26 +179,23 @@ public class BannerView extends FrameLayout
                 isPlaying = true;
                 mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
             }
-            Log.i(TAG, "play: start play");
         }
     }
 
     /**
      * 停止轮播
      */
-    public void stopPlay() {
+    public void stop() {
         mHandler.removeCallbacksAndMessages(null);
         isAutoPlay = false;
         isPlaying = false;
-        Log.i(TAG, "stopPlay: ");
     }
 
-    /**
-     * @return 是否需要自动轮播
-     */
-    public boolean isAutoPlay() {
-        return isAutoPlay;
+    public void pause() {
+        mHandler.removeCallbacksAndMessages(null);
+        isPlaying = false;
     }
+
 
     /**
      * @return 当前轮播状态
@@ -204,11 +213,11 @@ public class BannerView extends FrameLayout
     public void onPageScrollStateChanged(int state) {
         switch (state) {
             case SCROLL_STATE_DRAGGING:
-                stopPlay();
+                pause();
                 mIsAfterDragging = true;
                 break;
             case SCROLL_STATE_IDLE:
-                if (mIsAfterDragging) {
+                if (mIsAfterDragging && isAutoPlay) {
                     mIsAfterDragging = false;
                     play();
                 }
