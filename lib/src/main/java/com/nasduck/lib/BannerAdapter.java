@@ -39,33 +39,31 @@ public class BannerAdapter extends PagerAdapter {
         mDrawables = drawables;
         mRealSize = mDrawables.length;
         mType = BannerDataType.TYPE_SOURCE;
+        mClickListener = null;
     }
 
     public BannerAdapter( String[] urlStrings) {
         mUrlStrings = urlStrings;
         mRealSize = mUrlStrings.length;
         mType = BannerDataType.TYPE_INTERNET;
+        mClickListener = null;
 
         mBitmapList = new ArrayList<>();
         for (int i = 0; i < mUrlStrings.length; i +=1) {
             mBitmapList.add(null);
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                loadImageFromWebOperations();
-            }
-        }).start();
+        new Thread(this::loadImageFromWebOperations).start();
+
     }
 
-    public void setPlaceholder(Drawable drawable) {
+    void setPlaceholder(Drawable drawable) {
         for (int i = 0; i < mBitmapList.size(); i+=1) {
             mBitmapList.set(i, drawableToBitmap(drawable));
         }
     }
 
-    public void setPlaceholder(Bitmap bitmap) {
+    void setPlaceholder(Bitmap bitmap) {
         for (int i = 0; i < mBitmapList.size(); i+=1) {
             mBitmapList.set(i, bitmap);
         }
@@ -88,12 +86,9 @@ public class BannerAdapter extends PagerAdapter {
         container.addView(imageView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 
         // 图片点击事件
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mClickListener.onImageClick(realPosition);
-            }
-        });
+        if (mClickListener != null) {
+            imageView.setOnClickListener(v -> mClickListener.onImageClick(realPosition));
+        }
 
         return imageView;
     }
@@ -134,13 +129,13 @@ public class BannerAdapter extends PagerAdapter {
         void onImageClick(int position);
     }
 
-    public void setClickListener(ImageClickListener clickListener) {
+    void setClickListener(ImageClickListener clickListener) {
         mClickListener = clickListener;
     }
 
 
     private Bitmap drawableToBitmap (Drawable drawable) {
-        Bitmap bitmap = null;
+        Bitmap bitmap;
 
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
