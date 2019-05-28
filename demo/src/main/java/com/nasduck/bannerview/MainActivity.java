@@ -47,12 +47,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBannerViewLocal.setAdapter(mLocalAdapter, mDrawables.length);
         mBannerViewLocal.hasIndicator(true);
         mBannerViewLocal.setIntervalTime(3000);
-        mBannerViewLocal.setClickListener(new BannerAdapter.ImageClickListener() {
-            @Override
-            public void onImageClick(int position) {
-                Toast.makeText(MainActivity.this, " clicked at " + position, Toast.LENGTH_SHORT).show();
-            }
-        });
+
+        mBannerViewLocal.setClickListener(position -> Toast.makeText(MainActivity.this,
+                " clicked at " + position, Toast.LENGTH_SHORT).show());
+
 
         getLifecycle().addObserver(mBannerViewNet);
         getLifecycle().addObserver(mBannerViewLocal);
