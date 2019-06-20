@@ -66,7 +66,7 @@ public class BaseIndicator extends LinearLayout {
         }
 
         @SuppressLint("CustomViewStyleable")
-		TypedArray typedArray =
+        TypedArray typedArray =
                 context.obtainStyledAttributes(attrs, R.styleable.PenguinIndicator);
 
         config.setWidth(typedArray.getDimensionPixelSize(R.styleable.PenguinIndicator_pi_width, -1));
@@ -76,7 +76,7 @@ public class BaseIndicator extends LinearLayout {
                 R.anim.scale_with_alpha));
         config.setAnimatorReverseResId(typedArray.getResourceId(R.styleable.PenguinIndicator_pi_animator_reverse, -1));
         config.setBgResId(typedArray.getResourceId(R.styleable.PenguinIndicator_pi_drawable,
-                        R.drawable.round_white));
+                R.drawable.round_white));
         config.setUnselectedBgResId(typedArray.getResourceId(R.styleable.PenguinIndicator_pi_drawable_unselected,
                 config.getBackgroundResId()));
         typedArray.recycle();

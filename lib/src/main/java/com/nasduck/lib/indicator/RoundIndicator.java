@@ -70,7 +70,7 @@ public class RoundIndicator extends BaseIndicator implements ViewPager.OnPageCha
     @Override
     public void onPageSelected(int pos) {
         if (isViewPagerInit(mViewpager)) {
-            selectIndicator(pos  % mCount);
+            selectIndicator(pos % mCount);
         }
     }
 

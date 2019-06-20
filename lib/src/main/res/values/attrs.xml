@@ -3,14 +3,21 @@
 
 
     <declare-styleable name="PenguinIndicator">
-        <attr name="pi_width" format="dimension"/>
-        <attr name="pi_height" format="dimension"/>
-        <attr name="pi_margin" format="dimension"/>
-        <attr name="pi_animator" format="reference"/>
-        <attr name="pi_animator_reverse" format="reference"/>
-        <attr name="pi_drawable" format="reference"/>
-        <attr name="pi_drawable_unselected" format="reference"/>
+        <attr name="pi_width" format="dimension" />
+        <attr name="pi_height" format="dimension" />
+        <attr name="pi_margin" format="dimension" />
+        <attr name="pi_animator" format="reference" />
+        <attr name="pi_animator_reverse" format="reference" />
+        <attr name="pi_drawable" format="reference" />
+        <attr name="pi_drawable_unselected" format="reference" />
 
+    </declare-styleable>
+
+    <declare-styleable name="BannerView">
+        <attr name="autoPlay" format="boolean" />
+        <attr name="intervalTime" format="integer" />
+        <attr name="smoothScroll" format="boolean" />
+        <attr name="scrollTime" format="integer" />
     </declare-styleable>
 
 </resources>
