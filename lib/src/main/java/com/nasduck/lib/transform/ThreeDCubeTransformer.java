@@ -1,5 +1,6 @@
 package com.nasduck.lib.transform;
 
+import android.support.annotation.NonNull;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 
@@ -12,7 +13,7 @@ public class ThreeDCubeTransformer implements ViewPager.PageTransformer {
     private float baseRotate = 90.0f;
 
     @Override
-    public void transformPage(View view, float position) {
+    public void transformPage(@NonNull View view, float position) {
         if (position < -1) {
             view.setPivotX(view.getMeasuredWidth());
             view.setPivotY(view.getMeasuredHeight() * 0.5f);
