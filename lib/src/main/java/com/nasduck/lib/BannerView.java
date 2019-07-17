@@ -38,29 +38,32 @@ public class BannerView extends FrameLayout
         DefaultLifecycleObserver {
 
     private static final String TAG = "BannerView";
+    private static final int NEXT_PAGE_MESSAGE = 1;  // 下一页事件消息
+    private static final int INTERVAL_TIME = 3000;  // 默认切换间隔时间 3000ms
 
 
-    int mSize;  // 轮播内容个数
+
+    // 属性参数
     boolean isAutoPlay;  // 是否自动播放，默认为 true
     private int mIntervalTime;  // 轮播时间间隔变量
     private int mSmoothDuration;  // 轮换持续时间
-    private boolean mSmoothScroll;  // 平滑切换
+    private boolean isSmooth;  // 平滑切换
+    private boolean hasIndicator;
+    private int mScaleType; // 裁剪方式,默认"FIT_CENTER"
 
     private Context mContext;
-    private boolean isPlaying;  // 是否正在播放
+
     private ViewPager mViewPager;
     private RoundIndicator mIndicator;
     private BannerPagerAdapter mAdapter;
+
     private Handler mHandler;
+    private List mImageUrls;
     private List<View> mImageViews;
     private BannerViewClickListener mClickListener;
     private ImageLoaderInterface mImageLoader;
-    private List mImageUrls;
-    private int mScaleType; // 裁剪方式,默认"FIT_CENTER"
 
-    private static final int NEXT_PAGE_MESSAGE = 1;  // 下一页事件消息
-    private static final int INTERVAL_TIME = 3000;  // 轮播间隔常量
-
+    private boolean isPlaying;  // 是否正在播放
     private boolean mIsAfterDragging;  // 上一状态是否为拖拽状态
 
     public BannerView(Context context) {
@@ -72,63 +75,163 @@ public class BannerView extends FrameLayout
         mContext = context;
         LayoutInflater.from(context).inflate(R.layout.banner_view, this);
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.BannerView);
-        isAutoPlay = typedArray.getBoolean(R.styleable.BannerView_autoPlay, true);  // 默认自动轮播
-        mIntervalTime = typedArray.getInt(R.styleable.BannerView_intervalTime, INTERVAL_TIME);
-        mSmoothScroll = typedArray.getBoolean(R.styleable.BannerView_smoothScroll, false);
-        mSmoothDuration = typedArray.getInt(R.styleable.BannerView_scrollTime, -1);
-        mScaleType = typedArray.getInt(R.styleable.BannerView_banner_scale_type, BannerScaleType.FIT_CENTER.getValue());
+        initAttrs(context, typedArray);
         initData();
-        initView();
     }
 
     public BannerView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
-    public void initData() {
-        mIsAfterDragging = false;
-        isPlaying = false;
-        mImageViews = new ArrayList<>();
-        mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                if (msg.what == NEXT_PAGE_MESSAGE) {// 设置平滑切换
-                    if (mSmoothScroll) {
-                        mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1), true);
-                    } else {
-                        mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1));
-                    }
-                    sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
-                }
-            }
-        };
+    /**
+     * 初始化 BannerView 属性值
+     */
+    private void initAttrs(Context context, TypedArray typedArray) {
 
+
+        // 是否自动轮播 默认为 true
+        isAutoPlay = typedArray.getBoolean(R.styleable.BannerView_autoPlay, true);
+
+        // 轮播切换间隔时间 默认 3000ms
+        mIntervalTime = typedArray.getInt(R.styleable.BannerView_intervalTime, INTERVAL_TIME);
+
+        // 是否开启轮播平滑切换图片，
+        isSmooth = typedArray.getBoolean(R.styleable.BannerView_is_smooth_scroll, false);
+
+        // 图片平滑切换时间，默认切换持续时间 500ms
+        mSmoothDuration = typedArray.getInt(R.styleable.BannerView_scrollTime, 500);
+
+        // 是否带指示器， 默认 false
+        hasIndicator = typedArray.getBoolean(R.styleable.BannerView_has_indicator, false);
+
+        // 图片裁剪方式， 默认 FIT_CENTER
+        mScaleType = typedArray.getInt(R.styleable.BannerView_banner_scale_type, BannerScaleType.FIT_CENTER.getValue());
     }
 
-    public void initView() {
+    /**
+     * 数据初始化
+     */
+    private void initData() {
         mViewPager = findViewById(R.id.view_pager);
         mIndicator = findViewById(R.id.round_indicator);
         mViewPager.addOnPageChangeListener(this);
-        if (mSmoothDuration > 0 && mSmoothDuration < mIntervalTime) {
+
+        mIsAfterDragging = false;
+        isPlaying = false;
+        mImageViews = new ArrayList<>();
+        mHandler = new NextPagerHandle(mViewPager, isSmooth, mIntervalTime);
+        if (mSmoothDuration > 0 && mSmoothDuration < mIntervalTime && isSmooth) {
             setSmoothScroll(mSmoothDuration);
         }
     }
 
+    // * 对外提供属性设置方法 ************************************************************************/
+    /**
+     * 设置是否自动开启轮播
+     */
+    public BannerView setAutoPlay(boolean autoPlay) {
+        isAutoPlay = autoPlay;
+        return this;
+    }
+
+    /**
+     * 设置轮播间隔时间
+     */
+    public BannerView setIntervalTime(int intervalTime) {
+        mIntervalTime = intervalTime;
+        return this;
+    }
+
+    /**
+     * @param has 是否自带 Indicator
+     */
+    public BannerView hasIndicator(boolean has) {
+       this.hasIndicator = has;
+        return this;
+    }
+
+
+    /**
+     * 设置图片裁剪方式
+     */
+    public BannerView setScaleType(BannerScaleType scaleType) {
+        mScaleType = scaleType.getValue();
+        return this;
+    }
+
+    /**
+     * 设置图片加载框架
+     */
     public BannerView setImageLoader(ImageLoaderInterface imageLoader) {
         mImageLoader = imageLoader;
         return this;
     }
 
+
+    /**
+     * 设置图片地址
+     */
     public BannerView setImageUrls(List<?> imageUrls) {
         mImageUrls = imageUrls;
 
         if (imageUrls.size() <= 1) {
             isAutoPlay = false;
+        } else if (hasIndicator){
+            Log.i(TAG, "setImageUrls: size: " + mImageUrls.size());
+            mIndicator.setViewPager(mViewPager, mImageUrls.size());
         }
         return this;
     }
 
-    private void setImageList(List<?> imageUrls) {
+    /**
+     * 设置点击监听
+     * @param clickListener 点击监听
+     */
+    public void setClickListener(BannerViewClickListener clickListener) {
+        mClickListener = clickListener;
+    }
+
+    // * 公共方法 **********************************************************************************/
+    public BannerView start() {
+        initImageList(mImageUrls);
+        setData();
+        return this;
+    }
+
+    /**
+     * 开始轮播
+     * 在屏幕可见时开始轮播，否则通过生命周期回调再次判断是否开始自动轮播
+     */
+    public void play() {
+        if (!isPlaying) {
+            isPlaying = true;
+            isAutoPlay = true;
+            mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
+        }
+    }
+
+    /**
+     * 停止轮播
+     */
+    public void stop() {
+        mHandler.removeCallbacksAndMessages(null);
+        isAutoPlay = false;
+        isPlaying = false;
+    }
+
+    /**
+     * @return 是否正在轮播
+     */
+    public boolean isPlaying() {
+        return isPlaying;
+    }
+
+    // * 私有方法 **********************************************************************************/
+
+    /**
+     * 完成图片路径设置
+     */
+    private void initImageList(List<?> imageUrls) {
         if (imageUrls == null || imageUrls.size() <= 0) {
             Log.e(TAG, "This banner view data set is empty.");
             return;
@@ -153,12 +256,10 @@ public class BannerView extends FrameLayout
         }
     }
 
-    public BannerView setScaleType(BannerScaleType scaleType) {
-        mScaleType = scaleType.getValue();
-        return this;
-    }
-
-
+    /**
+     * 设置图片裁剪方式
+     * @param view 需要裁剪的 view
+     */
     private void setImageScaleType(View view) {
         if (view instanceof ImageView) {
             ImageView imageView = (ImageView) view;
@@ -195,6 +296,9 @@ public class BannerView extends FrameLayout
         }
     }
 
+    /**
+     * 设置数据
+     */
     private void setData() {
         if (mAdapter == null) {
             mAdapter = new BannerPagerAdapter();
@@ -205,29 +309,70 @@ public class BannerView extends FrameLayout
         mAdapter.notifyDataSetChanged();
     }
 
-    public BannerView start() {
-        setImageList(mImageUrls);
-        setData();
-        return this;
-    }
-
     /**
-     * 设置轮播间隔时间
-     */
-    public void setIntervalTime(int intervalTime) {
-        mIntervalTime = intervalTime;
-    }
-
-    /**
-     * @param has 是否自带 Indicator
-     */
-    public void hasIndicator(boolean has) {
-        if (has) {
-            mIndicator.setViewPager(mViewPager, mSize);
+     * 设置自定义滑动 Scroller
+     * 控制图片轮播切换过程持续时间
+     * @param duration 轮播切换持续时间
+     * */
+    private void setSmoothScroll(int duration) {
+        try {
+            Field mScroller;
+            mScroller = ViewPager.class.getDeclaredField("mScroller");
+            mScroller.setAccessible(true);
+            SmoothSpeedScroller scroller = new SmoothSpeedScroller(mViewPager.getContext(), new LinearInterpolator());
+            scroller.setDuration(duration);
+            mScroller.set(mViewPager, scroller);
+        } catch (NoSuchFieldException e) {
+            Log.e(TAG, "initData: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "initData: " + e.getMessage());
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, "initData: " + e.getMessage());
         }
     }
 
+    /**
+     * 暂停轮播
+     */
+    private void pause() {
+        isPlaying = false;
+        isAutoPlay = true;
+        mHandler.removeCallbacksAndMessages(null);
+    }
 
+    // * 内部类 ************************************************************************************/
+
+    /**
+     * 自定义切换下一页 Handle
+     */
+    static class NextPagerHandle extends Handler {
+        private ViewPager viewPager;
+        private boolean isSmooth;
+        private int intervalTime;
+
+        NextPagerHandle(ViewPager viewPager, boolean isSmooth, int intervalTime) {
+            this.viewPager = viewPager;
+            this.isSmooth = isSmooth;
+            this.intervalTime = intervalTime;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == NEXT_PAGE_MESSAGE) {
+                // setCurrentItem(position) 与 setCurrent(position, false) 效果不同
+                if (isSmooth) {
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() + 1, true);
+                } else {
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() + 1);
+                }
+                sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, intervalTime);
+            }
+        }
+    }
+
+    /**
+     * BannerView 适配器
+     */
     class BannerPagerAdapter extends PagerAdapter {
 
         @NonNull
@@ -265,15 +410,14 @@ public class BannerView extends FrameLayout
         }
     }
 
+    /**
+     * 点击接口
+     */
     public interface BannerViewClickListener {
         void onImageClick(int position);
     }
 
-    public void setClickListener(BannerViewClickListener clickListener) {
-        mClickListener = clickListener;
-    }
-
-
+    // * 生命周期事件 *******************************************************************************/
     /**
      * 监听 onStart() 生命周期
      * 根据是否自动轮播的状态，控制是否轮播
@@ -290,41 +434,12 @@ public class BannerView extends FrameLayout
         pause();
     }
 
-    /**
-     * 开始轮播
-     * 在屏幕可见时开始轮播，否则通过生命周期回调再次判断是否开始自动轮播
-     */
-    public void play() {
-        if (!isPlaying) {
-            isPlaying = true;
-            isAutoPlay = true;
-            mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
-        }
-    }
 
-    /**
-     * 停止轮播
-     */
-    public void stop() {
-        mHandler.removeCallbacksAndMessages(null);
-        isAutoPlay = false;
-        isPlaying = false;
-    }
-
-    public void pause() {
-        isPlaying = false;
-        isAutoPlay = true;
-        mHandler.removeCallbacksAndMessages(null);
-    }
-
-    public boolean isPlaying() {
-        return isPlaying;
-    }
 
     /**
      * @param state 新的状态.
-     *              viewpager 滑动监听，设置手动滑动按下时，停止自动轮播
-     *              松开时继续播放
+     * viewpager 滑动监听，设置手动滑动按下时，停止自动轮播
+     * 松开时继续播放
      */
     @Override
     public void onPageScrollStateChanged(int state) {
@@ -352,27 +467,5 @@ public class BannerView extends FrameLayout
     @Override
     public void onPageSelected(int position) {
 
-    }
-
-
-    /*************
-     * 设置自定义滑动 Scroller
-     * 控制图片轮播切换过程持续时间
-     * */
-    private void setSmoothScroll(int duration) {
-        try {
-            Field mScroller;
-            mScroller = ViewPager.class.getDeclaredField("mScroller");
-            mScroller.setAccessible(true);
-            SmoothSpeedScroller scroller = new SmoothSpeedScroller(mViewPager.getContext(), new LinearInterpolator());
-            scroller.setDuration(duration);
-            mScroller.set(mViewPager, scroller);
-        } catch (NoSuchFieldException e) {
-            Log.e(TAG, "initData: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "initData: " + e.getMessage());
-        } catch (IllegalAccessException e) {
-            Log.e(TAG, "initData: " + e.getMessage());
-        }
     }
 }
