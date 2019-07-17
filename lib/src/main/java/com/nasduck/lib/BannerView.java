@@ -125,16 +125,6 @@ public class BannerView extends FrameLayout
         if (imageUrls.size() <= 1) {
             isAutoPlay = false;
         }
-        setImageList(mImageUrls);
-
-
-        if (mAdapter == null) {
-            mAdapter = new BannerPagerAdapter();
-        }
-        int mid = Integer.MAX_VALUE / 2 - ((Integer.MAX_VALUE / 2) % imageUrls.size());
-        mViewPager.setCurrentItem(mid);
-        mViewPager.setAdapter(mAdapter);
-        mAdapter.notifyDataSetChanged();
         return this;
     }
 
@@ -203,6 +193,22 @@ public class BannerView extends FrameLayout
                     break;
             }
         }
+    }
+
+    private void setData() {
+        if (mAdapter == null) {
+            mAdapter = new BannerPagerAdapter();
+        }
+        int mid = Integer.MAX_VALUE / 2 - ((Integer.MAX_VALUE / 2) % mImageUrls.size());
+        mViewPager.setCurrentItem(mid);
+        mViewPager.setAdapter(mAdapter);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    public BannerView start() {
+        setImageList(mImageUrls);
+        setData();
+        return this;
     }
 
     /**
