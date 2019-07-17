@@ -43,8 +43,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getLifecycle().addObserver(mBannerViewResource);
 
         mBannerViewGlide.setImageLoader(new GlideImageLoader())
-                .setImageUrls(mUrlStrings)
                 .hasIndicator(true)
+                .setImageUrls(mUrlStrings)
                 .setScaleType(BannerScaleType.CENTER_CROP)
                 .start();
 

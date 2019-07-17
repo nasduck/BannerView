@@ -63,6 +63,7 @@ public class BannerView extends FrameLayout
     private BannerViewClickListener mClickListener;
     private ImageLoaderInterface mImageLoader;
 
+    private boolean hasSetIndicator;
     private boolean isPlaying;  // 是否正在播放
     private boolean mIsAfterDragging;  // 上一状态是否为拖拽状态
 
@@ -118,6 +119,8 @@ public class BannerView extends FrameLayout
 
         mIsAfterDragging = false;
         isPlaying = false;
+        hasSetIndicator = false;
+        mImageUrls = new ArrayList();
         mImageViews = new ArrayList<>();
         mHandler = new NextPagerHandle(mViewPager, isSmooth, mIntervalTime);
         setToSmooth();
@@ -145,6 +148,10 @@ public class BannerView extends FrameLayout
      */
     public BannerView hasIndicator(boolean has) {
        this.hasIndicator = has;
+       if (mImageUrls.size() >  0 && !hasSetIndicator && mAdapter != null) {
+           mIndicator.setViewPager(mViewPager, mImageUrls.size());
+           hasSetIndicator = true;
+       }
        return this;
     }
 
@@ -171,11 +178,13 @@ public class BannerView extends FrameLayout
      */
     public BannerView setImageUrls(List<?> imageUrls) {
         mImageUrls = imageUrls;
+        setAdapter();
 
-        if (imageUrls.size() <= 1) {
+        if (mImageUrls.size() <= 1) {
             isAutoPlay = false;
-        } else if (hasIndicator){
+        } else if (hasIndicator && !hasSetIndicator) {
             mIndicator.setViewPager(mViewPager, mImageUrls.size());
+            hasSetIndicator = true;
         }
         return this;
     }
@@ -208,7 +217,6 @@ public class BannerView extends FrameLayout
     // * 公共方法 **********************************************************************************/
     public BannerView start() {
         initImageList(mImageUrls);
-        setData();
         return this;
     }
 
@@ -313,7 +321,7 @@ public class BannerView extends FrameLayout
     /**
      * 设置数据
      */
-    private void setData() {
+    private void setAdapter() {
         if (mAdapter == null) {
             mAdapter = new BannerPagerAdapter();
         }
