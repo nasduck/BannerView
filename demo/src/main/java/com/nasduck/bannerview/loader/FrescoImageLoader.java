@@ -1,4 +1,4 @@
-package com.nasduck.bannerview;
+package com.nasduck.bannerview.loader;
 
 import android.content.Context;
 import android.net.Uri;

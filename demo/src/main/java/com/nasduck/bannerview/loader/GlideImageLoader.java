@@ -1,9 +1,10 @@
-package com.nasduck.bannerview;
+package com.nasduck.bannerview.loader;
 
 import android.content.Context;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.nasduck.bannerview.R;
 import com.nasduck.lib.loader.ImageLoader;
 
 public class GlideImageLoader extends ImageLoader {

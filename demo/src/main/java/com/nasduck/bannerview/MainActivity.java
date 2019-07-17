@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.nasduck.bannerview.loader.GlideImageLoader;
+import com.nasduck.bannerview.loader.ResourceImageLoader;
 import com.nasduck.lib.BannerScaleType;
 import com.nasduck.lib.BannerView;
 
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setAutoPlay(true)
                 .hasIndicator(true)
                 .setScaleType(BannerScaleType.CENTER_CROP)
+                .setIntervalTime(5000)
                 .start();
 
         mBannerViewResource.setClickListener(position -> Toast.makeText(MainActivity.this,
