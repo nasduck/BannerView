@@ -56,6 +56,7 @@ public class BannerView extends FrameLayout
     private BannerViewClickListener mClickListener;
     private ImageLoaderInterface mImageLoader;
     private List mImageUrls;
+    private int mScaleType; // 裁剪方式,默认"FIT_CENTER"
 
     private static final int NEXT_PAGE_MESSAGE = 1;  // 下一页事件消息
     private static final int INTERVAL_TIME = 3000;  // 轮播间隔常量
@@ -75,6 +76,7 @@ public class BannerView extends FrameLayout
         mIntervalTime = typedArray.getInt(R.styleable.BannerView_intervalTime, INTERVAL_TIME);
         mSmoothScroll = typedArray.getBoolean(R.styleable.BannerView_smoothScroll, false);
         mSmoothDuration = typedArray.getInt(R.styleable.BannerView_scrollTime, -1);
+        mScaleType = typedArray.getInt(R.styleable.BannerView_banner_scale_type, BannerScaleType.FIT_CENTER.getValue());
         initData();
         initView();
     }
@@ -151,7 +153,7 @@ public class BannerView extends FrameLayout
             if (imageView == null) {
                 imageView = new ImageView(mContext);
             }
-
+            setImageScaleType(imageView);
             mImageViews.add(imageView);
             if (mImageLoader != null) {
                 mImageLoader.displayImage(mContext, imageUrls.get(i), imageView);
@@ -161,19 +163,46 @@ public class BannerView extends FrameLayout
         }
     }
 
-    public BannerView setScaleType(View imageView, ImageView.ScaleType type) {
-        if (imageView instanceof ImageView) {
-            ImageView view = (ImageView) imageView;
-            switch (type) {
+    public BannerView setScaleType(BannerScaleType scaleType) {
+        mScaleType = scaleType.getValue();
+        return this;
+    }
+
+
+    private void setImageScaleType(View view) {
+        if (view instanceof ImageView) {
+            ImageView imageView = (ImageView) view;
+            BannerScaleType scaleType = BannerScaleType.getType(mScaleType);
+            if (scaleType == null) {
+                return;
+            }
+            switch (scaleType) {
                 case CENTER:
-                    view.setScaleType(ImageView.ScaleType.CENTER);
+                    imageView.setScaleType(ImageView.ScaleType.CENTER);
                     break;
-                default:
+                case CENTER_CROP:
+                    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    break;
+                case CENTER_INSIDE:
+                    imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                    break;
+                case FIT_CENTER:
+                    imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    break;
+                case FIT_END:
+                    imageView.setScaleType(ImageView.ScaleType.FIT_END);
+                    break;
+                case FIT_START:
+                    imageView.setScaleType(ImageView.ScaleType.FIT_START);
+                    break;
+                case FIT_XY:
+                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                    break;
+                case MATRIX:
+                    imageView.setScaleType(ImageView.ScaleType.MATRIX);
                     break;
             }
         }
-
-        return this;
     }
 
     /**
@@ -200,10 +229,6 @@ public class BannerView extends FrameLayout
         public Object instantiateItem(@NonNull ViewGroup container, int position) {
             int realPosition = position % mImageUrls.size();
             View view = mImageViews.get(realPosition);
-
-            if (view instanceof ImageView) {
-                ((ImageView) view).setScaleType(ImageView.ScaleType.CENTER_CROP);
-            }
 
             if (container.equals(view.getParent())) {
                 container.removeView(view);
