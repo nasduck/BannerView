@@ -120,9 +120,7 @@ public class BannerView extends FrameLayout
         isPlaying = false;
         mImageViews = new ArrayList<>();
         mHandler = new NextPagerHandle(mViewPager, isSmooth, mIntervalTime);
-        if (mSmoothDuration > 0 && mSmoothDuration < mIntervalTime && isSmooth) {
-            setSmoothScroll(mSmoothDuration);
-        }
+        setToSmooth();
     }
 
     // * 对外提供属性设置方法 ************************************************************************/
@@ -147,7 +145,7 @@ public class BannerView extends FrameLayout
      */
     public BannerView hasIndicator(boolean has) {
        this.hasIndicator = has;
-        return this;
+       return this;
     }
 
 
@@ -177,10 +175,26 @@ public class BannerView extends FrameLayout
         if (imageUrls.size() <= 1) {
             isAutoPlay = false;
         } else if (hasIndicator){
-            Log.i(TAG, "setImageUrls: size: " + mImageUrls.size());
             mIndicator.setViewPager(mViewPager, mImageUrls.size());
         }
         return this;
+    }
+
+    /**
+     * 设置平滑切换
+     * @param smooth 是否平滑切换
+     */
+    public void setSmooth(boolean smooth) {
+       isSmooth  = smooth;
+    }
+
+
+    /**
+     * 设置平滑切换持续时间
+     * @param smoothDuration 平滑切换持续时间
+     */
+    public void setSmoothDuration(int smoothDuration) {
+        mSmoothDuration = smoothDuration;
     }
 
     /**
@@ -307,6 +321,15 @@ public class BannerView extends FrameLayout
         mViewPager.setCurrentItem(mid);
         mViewPager.setAdapter(mAdapter);
         mAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * 设置平滑切换
+     */
+    private void setToSmooth() {
+        if (mSmoothDuration > 0 && mSmoothDuration < mIntervalTime && isSmooth) {
+            setSmoothScroll(mSmoothDuration);
+        }
     }
 
     /**
