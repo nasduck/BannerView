@@ -1,25 +1,29 @@
 package com.nasduck.lib;
 
 import android.arch.lifecycle.DefaultLifecycleObserver;
-import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleOwner;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import com.nasduck.lib.indicator.RoundIndicator;
+import com.nasduck.lib.loader.ImageLoaderInterface;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 import static android.arch.lifecycle.Lifecycle.State.STARTED;
 import static android.support.v4.view.ViewPager.SCROLL_STATE_DRAGGING;
@@ -27,7 +31,7 @@ import static android.support.v4.view.ViewPager.SCROLL_STATE_IDLE;
 
 /**
  * Created by yi on 2019/4/25.
- * Description: 顶部横幅轮播栏
+ * Description: 横幅轮播栏
  */
 public class BannerView extends FrameLayout
         implements ViewPager.OnPageChangeListener,
@@ -41,21 +45,22 @@ public class BannerView extends FrameLayout
     private int mIntervalTime;  // 轮播时间间隔变量
     private int mSmoothDuration;  // 轮换持续时间
     private boolean mSmoothScroll;  // 平滑切换
-    private boolean isPlaying;  // 是否正在播放
 
+    private Context mContext;
+    private boolean isPlaying;  // 是否正在播放
     private ViewPager mViewPager;
     private RoundIndicator mIndicator;
-    private BannerAdapter mAdapter;
+    private BannerPagerAdapter mAdapter;
     private Handler mHandler;
+    private List<View> mImageViews;
+    private BannerViewClickListener mClickListener;
+    private ImageLoaderInterface mImageLoader;
+    private List mImageUrls;
 
     private static final int NEXT_PAGE_MESSAGE = 1;  // 下一页事件消息
     private static final int INTERVAL_TIME = 3000;  // 轮播间隔常量
 
-    private Lifecycle mLifecycle;  // 生命周期
     private boolean mIsAfterDragging;  // 上一状态是否为拖拽状态
-
-
-    private BannerAdapter.ImageClickListener mClickListener;
 
     public BannerView(Context context) {
         super(context);
@@ -63,6 +68,7 @@ public class BannerView extends FrameLayout
 
     public BannerView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
         LayoutInflater.from(context).inflate(R.layout.banner_view, this);
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.BannerView);
         isAutoPlay = typedArray.getBoolean(R.styleable.BannerView_autoPlay, true);  // 默认自动轮播
@@ -77,24 +83,97 @@ public class BannerView extends FrameLayout
         super(context, attrs, defStyleAttr);
     }
 
-    @Override
-    public void onCreate(@NonNull LifecycleOwner owner) {
-        mLifecycle = owner.getLifecycle();
+    public void initData() {
+        mIsAfterDragging = false;
+        isPlaying = false;
+        mImageViews = new ArrayList<>();
+        mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == NEXT_PAGE_MESSAGE) {// 设置平滑切换
+                    if (mSmoothScroll) {
+                        mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1), true);
+                    } else {
+                        mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1));
+                    }
+                    sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
+                }
+            }
+        };
+
     }
 
-    public void setAdapter(BannerAdapter adapter, int size) {
-        mAdapter = adapter;
-        mSize = size;
+    public void initView() {
+        mViewPager = findViewById(R.id.view_pager);
+        mIndicator = findViewById(R.id.round_indicator);
+        mViewPager.addOnPageChangeListener(this);
+        if (mSmoothDuration > 0 && mSmoothDuration < mIntervalTime) {
+            setSmoothScroll(mSmoothDuration);
+        }
+    }
 
-        // 内容个数小于等于1时，默认设置不自动轮播
-        if (mSize <= 1) {
+    public BannerView setImageLoader(ImageLoaderInterface imageLoader) {
+        mImageLoader = imageLoader;
+        return this;
+    }
+
+    public BannerView setImageUrls(List<?> imageUrls) {
+        mImageUrls = imageUrls;
+
+        if (imageUrls.size() <= 1) {
             isAutoPlay = false;
         }
-        int mid = Integer.MAX_VALUE / 2 - ((Integer.MAX_VALUE / 2) % size);
+        setImageList(mImageUrls);
+
+
+        if (mAdapter == null) {
+            mAdapter = new BannerPagerAdapter();
+        }
+        int mid = Integer.MAX_VALUE / 2 - ((Integer.MAX_VALUE / 2) % imageUrls.size());
         mViewPager.setCurrentItem(mid);
         mViewPager.setAdapter(mAdapter);
         mAdapter.notifyDataSetChanged();
+        return this;
+    }
 
+    private void setImageList(List<?> imageUrls) {
+        if (imageUrls == null || imageUrls.size() <= 0) {
+            Log.e(TAG, "This banner view data set is empty.");
+            return;
+        }
+        mImageViews.clear();
+        for (int i = 0; i < imageUrls.size(); i += 1) {
+            View imageView = null;
+            if (mImageLoader != null) {
+                imageView = mImageLoader.createImageView(mContext);
+            }
+
+            if (imageView == null) {
+                imageView = new ImageView(mContext);
+            }
+
+            mImageViews.add(imageView);
+            if (mImageLoader != null) {
+                mImageLoader.displayImage(mContext, imageUrls.get(i), imageView);
+            } else {
+                Log.e(TAG, "Please set image loader");
+            }
+        }
+    }
+
+    public BannerView setScaleType(View imageView, ImageView.ScaleType type) {
+        if (imageView instanceof ImageView) {
+            ImageView view = (ImageView) imageView;
+            switch (type) {
+                case CENTER:
+                    view.setScaleType(ImageView.ScaleType.CENTER);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return this;
     }
 
     /**
@@ -113,42 +192,54 @@ public class BannerView extends FrameLayout
         }
     }
 
-    /**
-     * 设置占位图
-     * */
-    public void setPlaceHolder(Drawable placeHolder) {
-        mAdapter.setPlaceholder(placeHolder);
-    }
 
-    public void setPlaceholder(Bitmap placeholder) {
-        mAdapter.setPlaceholder(placeholder);
-    }
+    class BannerPagerAdapter extends PagerAdapter {
 
-    public void initData() {
-        mIsAfterDragging = false;
-        isPlaying = false;
-        mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                if (msg.what == NEXT_PAGE_MESSAGE) {// 设置平滑切换
-                    if (mSmoothScroll) {
-                        mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1), true);
-                    } else {
-                        mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1));
-                    }
-                    sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
-                }
+        @NonNull
+        @Override
+        public Object instantiateItem(@NonNull ViewGroup container, int position) {
+            int realPosition = position % mImageUrls.size();
+            View view = mImageViews.get(realPosition);
+
+            if (view instanceof ImageView) {
+                ((ImageView) view).setScaleType(ImageView.ScaleType.CENTER_CROP);
             }
-        };
+
+            if (container.equals(view.getParent())) {
+                container.removeView(view);
+            }
+            container.addView(view, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+
+            // 图片点击事件
+            if (mClickListener != null) {
+                view.setOnClickListener(v -> mClickListener.onImageClick(realPosition));
+            }
+
+            return view;
+        }
+
+        @Override
+        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+            container.removeView((View) object);
+        }
+
+        @Override
+        public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
+            return view == o;
+        }
+
+        @Override
+        public int getCount() {
+            return Integer.MAX_VALUE;
+        }
     }
 
-    public void initView() {
-        mViewPager = findViewById(R.id.view_pager);
-        mIndicator = findViewById(R.id.round_indicator);
-        mViewPager.addOnPageChangeListener(this);
-        if (mSmoothDuration > 0 && mSmoothDuration < mIntervalTime) {
-            setSmoothScroll(mSmoothDuration);
-        }
+    public interface BannerViewClickListener {
+        void onImageClick(int position);
+    }
+
+    public void setClickListener(BannerViewClickListener clickListener) {
+        mClickListener = clickListener;
     }
 
 
@@ -158,7 +249,7 @@ public class BannerView extends FrameLayout
      */
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
-        if (isAutoPlay) {
+        if (isAutoPlay && owner.getLifecycle().getCurrentState().isAtLeast(STARTED)) {
             play();
         }
     }
@@ -173,12 +264,10 @@ public class BannerView extends FrameLayout
      * 在屏幕可见时开始轮播，否则通过生命周期回调再次判断是否开始自动轮播
      */
     public void play() {
-        isAutoPlay = true;
-        if (mLifecycle.getCurrentState().isAtLeast(STARTED)) {
-            if (!isPlaying) {
-                isPlaying = true;
-                mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
-            }
+        if (!isPlaying) {
+            isPlaying = true;
+            isAutoPlay = true;
+            mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
         }
     }
 
@@ -192,14 +281,11 @@ public class BannerView extends FrameLayout
     }
 
     public void pause() {
-        mHandler.removeCallbacksAndMessages(null);
         isPlaying = false;
+        isAutoPlay = true;
+        mHandler.removeCallbacksAndMessages(null);
     }
 
-
-    /**
-     * @return 当前轮播状态
-     */
     public boolean isPlaying() {
         return isPlaying;
     }
@@ -256,12 +342,6 @@ public class BannerView extends FrameLayout
             Log.e(TAG, "initData: " + e.getMessage());
         } catch (IllegalAccessException e) {
             Log.e(TAG, "initData: " + e.getMessage());
-        }
-    }
-
-    public void setClickListener(BannerAdapter.ImageClickListener clickListener) {
-        if (mAdapter != null) {
-            mAdapter.setClickListener(clickListener);
         }
     }
 }
