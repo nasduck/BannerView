@@ -16,8 +16,19 @@
     <declare-styleable name="BannerView">
         <attr name="autoPlay" format="boolean" />
         <attr name="intervalTime" format="integer" />
-        <attr name="smoothScroll" format="boolean" />
+        <attr name="is_smooth_scroll" format="boolean" />
         <attr name="scrollTime" format="integer" />
+        <attr name="has_indicator" format="boolean" />
+        <attr name="banner_scale_type" format="enum">
+            <enum name="center" value="0" />
+            <enum name="center_crop" value="1" />
+            <enum name="center_inside" value="2" />
+            <enum name="fit_center" value="3" />
+            <enum name="fit_end" value="4" />
+            <enum name="fit_start" value="5" />
+            <enum name="fix_xy" value="6" />
+            <enum name="matrix" value="7" />
+        </attr>
     </declare-styleable>
 
 </resources>

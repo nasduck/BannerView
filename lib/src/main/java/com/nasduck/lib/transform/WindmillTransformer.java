@@ -1,5 +1,6 @@
-package com.nasduck.lib.anim;
+package com.nasduck.lib.transform;
 
+import android.support.annotation.NonNull;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 
@@ -12,10 +13,8 @@ public class WindmillTransformer implements ViewPager.PageTransformer {
     private static final float BASE_ROTATION = 180.0f;
 
     @Override
-    public void transformPage(View view, float position) {
-        if (position < -1) {
-
-        } else if (position <= 0) {
+    public void transformPage(@NonNull View view, float position) {
+       if (position <= 0) {
             view.setTranslationX(-view.getWidth() * position);
             float rotation = (BASE_ROTATION * position);
             view.setRotationY(rotation);

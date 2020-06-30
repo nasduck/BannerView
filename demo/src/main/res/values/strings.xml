@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">BannerView</string>
-    <string name="internet_banner">Internet Resource BannerView</string>
-    <string name="local_resource_banner">Local Resource BannerView</string>
+    <string name="load_image_by_glide">Load Image by Glide</string>
+    <string name="load_image_form_resource">Local Image form Resource</string>
 </resources>

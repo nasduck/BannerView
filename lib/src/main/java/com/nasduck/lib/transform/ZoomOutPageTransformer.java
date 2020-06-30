@@ -1,4 +1,4 @@
-package com.nasduck.lib.anim;
+package com.nasduck.lib.transform;
 
 import android.support.annotation.NonNull;
 import android.support.v4.view.ViewPager;

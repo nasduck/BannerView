@@ -15,10 +15,10 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        android:text="@string/internet_banner" />
+        android:text="@string/load_image_by_glide" />
 
     <com.nasduck.lib.BannerView
-        android:id="@+id/banner_view_net"
+        android:id="@+id/banner_view_glide"
         android:layout_width="match_parent"
         android:layout_height="160dp"
         android:layout_below="@id/tv_internet"
@@ -29,24 +29,25 @@
         android:id="@+id/tv_local"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/banner_view_net"
+        android:layout_below="@id/banner_view_glide"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        android:text="@string/local_resource_banner" />
+        android:text="@string/load_image_form_resource" />
 
     <com.nasduck.lib.BannerView
-        android:id="@+id/banner_view_local"
+        android:id="@+id/banner_view_resource"
         android:layout_width="match_parent"
         android:layout_height="160dp"
         android:layout_below="@id/tv_local"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        app:is_smooth_scroll="true" />
 
     <Button
         android:id="@+id/btn_stop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/banner_view_local"
+        android:layout_below="@id/banner_view_resource"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         android:text="@string/stop" />
