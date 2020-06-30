@@ -226,20 +226,18 @@ public class BannerView extends FrameLayout
      * 在屏幕可见时开始轮播，否则通过生命周期回调再次判断是否开始自动轮播
      */
     public void play() {
-        if (!isPlaying) {
-            isPlaying = true;
-            isAutoPlay = true;
-            mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
-        }
+        isPlaying = true;
+        isAutoPlay = true;
+        mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
     }
 
     /**
      * 停止轮播
      */
     public void stop() {
-        mHandler.removeCallbacksAndMessages(null);
-        isAutoPlay = false;
         isPlaying = false;
+        isAutoPlay = false;
+        mHandler.removeCallbacksAndMessages(null);
     }
 
     /**
@@ -359,15 +357,6 @@ public class BannerView extends FrameLayout
         }
     }
 
-    /**
-     * 暂停轮播
-     */
-    private void pause() {
-        isPlaying = false;
-        isAutoPlay = true;
-        mHandler.removeCallbacksAndMessages(null);
-    }
-
     // * 内部类 ************************************************************************************/
 
     /**
@@ -459,7 +448,7 @@ public class BannerView extends FrameLayout
 
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
-        pause();
+        stop();
     }
 
 
@@ -473,7 +462,7 @@ public class BannerView extends FrameLayout
     public void onPageScrollStateChanged(int state) {
         switch (state) {
             case SCROLL_STATE_DRAGGING:
-                pause();
+                stop();
                 mIsAfterDragging = true;
                 break;
             case SCROLL_STATE_IDLE:
