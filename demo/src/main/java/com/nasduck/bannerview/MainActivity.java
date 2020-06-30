@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mBannerViewResource.setClickListener(position -> Toast.makeText(MainActivity.this,
                 " clicked at " + position, Toast.LENGTH_SHORT).show());
+        mBannerViewResource.setScrolledListener( position -> Toast.makeText(MainActivity.this, "current position: " + position, Toast.LENGTH_SHORT).show());
 
     }
 

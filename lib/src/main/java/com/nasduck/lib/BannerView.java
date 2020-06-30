@@ -67,6 +67,8 @@ public class BannerView extends FrameLayout
     private boolean isPlaying;  // 是否正在播放
     private boolean mIsAfterDragging;  // 上一状态是否为拖拽状态
 
+    private OnBannerScrolledListener mScrolledListener;
+
     public BannerView(Context context) {
         super(context);
     }
@@ -215,6 +217,10 @@ public class BannerView extends FrameLayout
         mClickListener = clickListener;
     }
 
+    public void setScrolledListener(OnBannerScrolledListener scrolledListener) {
+        mScrolledListener = scrolledListener;
+    }
+
     // * 公共方法 **********************************************************************************/
     public BannerView start() {
         initImageList(mImageUrls);
@@ -245,6 +251,10 @@ public class BannerView extends FrameLayout
      */
     public boolean isPlaying() {
         return isPlaying;
+    }
+
+    public int getCurrentIndex() {
+        return mViewPager.getCurrentItem()  % mImageUrls.size();
     }
 
     // * 私有方法 **********************************************************************************/
@@ -483,6 +493,12 @@ public class BannerView extends FrameLayout
 
     @Override
     public void onPageSelected(int position) {
+        if (mScrolledListener != null) {
+            mScrolledListener.onBannerScrolled(getCurrentIndex());
+        }
+    }
 
+    public interface OnBannerScrolledListener {
+        void onBannerScrolled(int position);
     }
 }
