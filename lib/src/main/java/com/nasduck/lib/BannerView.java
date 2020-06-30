@@ -498,6 +498,9 @@ public class BannerView extends FrameLayout
         }
     }
 
+    /**
+     * 当前位置位置监听接口
+     */
     public interface OnBannerScrolledListener {
         void onBannerScrolled(int position);
     }
