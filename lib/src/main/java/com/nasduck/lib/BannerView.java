@@ -50,6 +50,7 @@ public class BannerView extends FrameLayout
     private boolean isSmooth;  // 平滑切换
     private boolean hasIndicator;
     private int mScaleType; // 裁剪方式,默认"FIT_CENTER"
+    private boolean isLoop = true; // 是否循环
 
     private Context mContext;
 
@@ -150,10 +151,7 @@ public class BannerView extends FrameLayout
      */
     public BannerView hasIndicator(boolean has) {
        this.hasIndicator = has;
-       if (hasIndicator && mImageUrls.size() >  0 && !hasSetIndicator && mAdapter != null) {
-           mIndicator.setViewPager(mViewPager, mImageUrls.size());
-           hasSetIndicator = true;
-       }
+
        return this;
     }
 
@@ -181,14 +179,8 @@ public class BannerView extends FrameLayout
     public BannerView setImageUrls(List<?> imageUrls) {
         mImageUrls = imageUrls;
         initImageList(mImageUrls);
-        setAdapter();
 
-        if (mImageUrls.size() <= 1) {
-            isAutoPlay = false;
-        } else if (hasIndicator && !hasSetIndicator) {
-            mIndicator.setViewPager(mViewPager, mImageUrls.size());
-            hasSetIndicator = true;
-        }
+
         return this;
     }
 
@@ -196,8 +188,26 @@ public class BannerView extends FrameLayout
      * 设置平滑切换
      * @param smooth 是否平滑切换
      */
-    public void setSmooth(boolean smooth) {
+    public BannerView setSmooth(boolean smooth) {
        isSmooth  = smooth;
+       return this;
+    }
+
+    public BannerView setLoop(boolean loop) {
+        isLoop = loop;
+        return this;
+    }
+
+    public void init() {
+        setAdapter();
+        if (hasIndicator && mImageUrls.size() >  0 && !hasSetIndicator && mAdapter != null) {
+            mIndicator.setViewPager(mViewPager, mImageUrls.size());
+            hasSetIndicator = true;
+        }
+
+        if (mImageUrls.size() <= 1) {
+            isAutoPlay = false;
+        }
     }
 
 
@@ -205,8 +215,9 @@ public class BannerView extends FrameLayout
      * 设置平滑切换持续时间
      * @param smoothDuration 平滑切换持续时间
      */
-    public void setSmoothDuration(int smoothDuration) {
+    public BannerView setSmoothDuration(int smoothDuration) {
         mSmoothDuration = smoothDuration;
+        return this;
     }
 
     /**
@@ -232,9 +243,11 @@ public class BannerView extends FrameLayout
      * 在屏幕可见时开始轮播，否则通过生命周期回调再次判断是否开始自动轮播
      */
     public void play() {
-        isPlaying = true;
-        isAutoPlay = true;
-        mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
+        if (isLoop) {
+            isPlaying = true;
+            isAutoPlay = true;
+            mHandler.sendEmptyMessageDelayed(NEXT_PAGE_MESSAGE, mIntervalTime);
+        }
     }
 
     /**
@@ -334,8 +347,10 @@ public class BannerView extends FrameLayout
         if (mAdapter == null) {
             mAdapter = new BannerPagerAdapter();
         }
-        int mid = Integer.MAX_VALUE / 2 - ((Integer.MAX_VALUE / 2) % mImageUrls.size());
-        mViewPager.setCurrentItem(mid);
+        if (isLoop) {
+            int mid = Integer.MAX_VALUE / 2 - ((Integer.MAX_VALUE / 2) % mImageUrls.size());
+            mViewPager.setCurrentItem(mid);
+        }
         mViewPager.setAdapter(mAdapter);
         mAdapter.notifyDataSetChanged();
     }
@@ -385,7 +400,7 @@ public class BannerView extends FrameLayout
 
         @Override
         public void handleMessage(Message msg) {
-            if (msg.what == NEXT_PAGE_MESSAGE) {
+            if (msg.what == NEXT_PAGE_MESSAGE ) {
                 // setCurrentItem(position) 与 setCurrent(position, false) 效果不同
                 if (isSmooth) {
                     viewPager.setCurrentItem(viewPager.getCurrentItem() + 1, true);
@@ -433,7 +448,7 @@ public class BannerView extends FrameLayout
 
         @Override
         public int getCount() {
-            return Integer.MAX_VALUE;
+            return isLoop? Integer.MAX_VALUE : mImageUrls.size();
         }
     }
 

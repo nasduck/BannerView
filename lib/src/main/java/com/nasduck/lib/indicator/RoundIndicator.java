@@ -6,6 +6,8 @@ import android.util.AttributeSet;
 
 import com.nasduck.lib.indicator.BaseIndicator;
 
+import java.util.Objects;
+
 
 public class RoundIndicator extends BaseIndicator implements ViewPager.OnPageChangeListener {
 
@@ -45,12 +47,11 @@ public class RoundIndicator extends BaseIndicator implements ViewPager.OnPageCha
         removeAllViews();
         if (isViewPagerInit(mViewpager)) {
             if (count <= 0) {
-                mCount = mViewpager.getAdapter().getCount();
-                createIndicators(mCount, mViewpager.getCurrentItem());
+                mCount = Objects.requireNonNull(mViewpager.getAdapter()).getCount();
             } else {
                 mCount = count;
-                createIndicators(mCount, mViewpager.getCurrentItem());
             }
+            createIndicators(mCount, mViewpager.getCurrentItem());
         }
     }
 
