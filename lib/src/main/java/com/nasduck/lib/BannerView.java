@@ -148,7 +148,7 @@ public class BannerView extends FrameLayout
      */
     public BannerView hasIndicator(boolean has) {
        this.hasIndicator = has;
-       if (mImageUrls.size() >  0 && !hasSetIndicator && mAdapter != null) {
+       if (hasIndicator && mImageUrls.size() >  0 && !hasSetIndicator && mAdapter != null) {
            mIndicator.setViewPager(mViewPager, mImageUrls.size());
            hasSetIndicator = true;
        }
