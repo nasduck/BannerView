@@ -120,7 +120,7 @@ public class BannerView extends FrameLayout
         mIsAfterDragging = false;
         isPlaying = false;
         hasSetIndicator = false;
-        mImageUrls = new ArrayList();
+        mImageUrls = new ArrayList<>();
         mImageViews = new ArrayList<>();
         mHandler = new NextPagerHandle(mViewPager, isSmooth, mIntervalTime);
         setToSmooth();
@@ -178,6 +178,7 @@ public class BannerView extends FrameLayout
      */
     public BannerView setImageUrls(List<?> imageUrls) {
         mImageUrls = imageUrls;
+        initImageList(mImageUrls);
         setAdapter();
 
         if (mImageUrls.size() <= 1) {
@@ -353,11 +354,7 @@ public class BannerView extends FrameLayout
             SmoothSpeedScroller scroller = new SmoothSpeedScroller(mViewPager.getContext(), new LinearInterpolator());
             scroller.setDuration(duration);
             mScroller.set(mViewPager, scroller);
-        } catch (NoSuchFieldException e) {
-            Log.e(TAG, "initData: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "initData: " + e.getMessage());
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
             Log.e(TAG, "initData: " + e.getMessage());
         }
     }

@@ -45,16 +45,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBannerViewGlide.setImageLoader(new GlideImageLoader())
                 .hasIndicator(true)
                 .setImageUrls(mUrlStrings)
-                .setScaleType(BannerScaleType.CENTER_CROP)
-                .start();
+                .setScaleType(BannerScaleType.CENTER_CROP);
 
         mBannerViewResource.setImageLoader(new ResourceImageLoader())
                 .setImageUrls(mDrawables)
                 .setAutoPlay(true)
                 .hasIndicator(true)
                 .setScaleType(BannerScaleType.CENTER_CROP)
-                .setIntervalTime(5000)
-                .start();
+                .setIntervalTime(5000);
 
         mBannerViewResource.setClickListener(position -> Toast.makeText(MainActivity.this,
                 " clicked at " + position, Toast.LENGTH_SHORT).show());
